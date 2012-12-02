@@ -11,43 +11,74 @@
         window.addEventListener('load', onloadHandler, false);
 
         function colorShade(px, py, pz, color) {
-//            var noise = D(px, py, pz, 10, 20);
-//            console.log("noise" + noise);
-//            if (noise < 0) noise *= -1;
-//            console.log("orig" + color.r);
-//            color.r *= noise;
-//            console.log("noised" + color.r);
-//            color.g *= noise;
-//            color.b *= noise;
-            
-            
+              
             // TEMP NORMAL
             
             py *= -1;
             
             var normal = { x: px, y: py, z:1};
+            console.log(normal);
             var length = Math.sqrt(px*px + py*py + pz*pz);
             normal.x /= length;
             normal.y /= length;
             normal.z /= length;
             
             // TEMP LIGHT
-            var light = {x: 1, y: 1, z: 1};
+            var light = {x: 10, y: 0, z: 1};
             var ll = Math.sqrt(light.x*light.x + light.y*light.y + light.z+light.z);// light length
             light.x /= ll;
             light.y /= ll;
             light.z /= ll;
-            var lightColor = {r: 255, g:0, b:255};
-            var coeff = {r:107, g:107, b:107}
+            
+            // 2 lights!
+            var light2 = {x: 10, y: 0.0, z: 1};
+            var ll = Math.sqrt(light2.x*light2.x + light2.y*light2.y + light2.z+light2.z);// light length
+            light2.x /= ll;
+            light2.y /= ll;
+            light2.z /= ll;
+            
+            
+            var lightColor = {r: 1.0, g:0.0, b:1.0};
+            var coeff = {r:1.0, g:1.0, b:1.0}
                         
             NdotL = normal.x*light.x + normal.y*light.y + normal.z*light.z;
-            console.log("n . l " + NdotL);
+            NdotL2 = normal.x*light2.x + normal.y*light2.y + normal.z*light2.z;
+            console.log("n . l= " + NdotL);
             
-            color.r = lightColor.r * NdotL;
-            color.g = lightColor.g * NdotL;
-            color.b = lightColor.b * NdotL;
+            
+            // diffusess
+            color.r = coeff.r * (lightColor.r * (NdotL + NdotL2));
+            color.g = coeff.g * (lightColor.g * (NdotL + NdotL2));
+            color.b = coeff.b * (lightColor.b * (NdotL + NdotL2));
+            
+            // clamp 
+            if (color.r < 0) color.r = 0;
+            else if (color.r > 1) color.r = 1;
+            if (color.g < 0) color.g = 0;
+            else if (color.g > 1) color.g = 1;
+            if (color.b < 0) color.b = 0;
+            else if (color.b > 1) color.b = 1;
+            
+            console.log(color.r);
+            
+            // add some ambience
+            color.r += .1 * lightColor.r;
+            color.g += .1 * lightColor.g;
+            color.b += .1 * lightColor.b;
+            
+            if (color.r < 0) color.r = 0;
+            else if (color.r > 1) color.r = 1;
+            if (color.g < 0) color.g = 0;
+            else if (color.g > 1) color.g = 1;
+            if (color.b < 0) color.b = 0;
+            else if (color.b > 1) color.b = 1;
+            
+            // convert back to 255?
+            color.r = Math.floor(color.r * 255);
+            console.log(color.r);
+            color.g = Math.floor(color.g * 255);
+            color.b = Math.floor(color.b * 255);
         }
-
 
         // Object Density function for this point x, y, z
         // Arguments
@@ -87,9 +118,11 @@
                     var idx = (px + py*256) * 4
                   //  console.log("orig:" + imgData.data[idx+0]);
                     imgData.data[idx + 0] = color.r; // R
-                    console.log("in sphere!" + imgData.data[idx+0]);
+                    console.log("in sphere! r " + imgData.data[idx+0]);
                     imgData.data[idx + 1] = color.g; // G
+                    console.log("in sphere! g " + imgData.data[idx+1]);
                     imgData.data[idx + 2] = color.b; // B
+                    console.log("in sphere! b " + imgData.data[idx+2]);
                     imgData.data[idx + 3] = 255; // A
                 } 
             
@@ -108,7 +141,7 @@
                     for (var x = 0; x < 256; ++x) {
                      //    ctx.fillStyle = 'rgb(255,0,0)';
                       //  ctx.fillRect(x, y, 1, 1);
-                        drawSphere(50.0, x, y, imgData);
+                        drawSphere(75.0, x, y, imgData);
                     }
                 }
                 ctx.putImageData(imgData, 0,0);
