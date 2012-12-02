@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Hypertexture testing</title>
+        <script>
+        
+            var imgData;
+            
+            window.addEventListener('load', onloadHandler, false);
+
+        // Object Density function for this point x, y, z
+        // Arguments
+        // x, y, z This point in the "shere"
+        // s  width of soft region
+        // r radius of sphere
+        function D(x, y, z, s, r) {
+            
+        }
+
+        // draws a sphere
+        function drawSphere(r, px, py, imgData) {
+                var x = px - 256/2;
+                var y = py - 256/2;
+                var dist = Math.sqrt(x*x + y*y);
+                if (dist > r) {
+                    return;
+                } else {
+                    console.log('success?');
+                    console.log(px +", " +py);
+                    
+//                    ctx.fillStyle('rgb(255,0,0)');
+//                    ctx.fillRect(x, y, 1, 1);
+                    var idx = (px + py*256) * 4
+                    console.log("orig:" + imgData.data[idx+0]);
+                    imgData.data[idx + 0] = 255; // R
+                    console.log("in sphere!" + imgData.data[idx+0]);
+                    imgData.data[idx + 1] = 0; // G
+                    imgData.data[idx + 2] = 0; // B
+                    imgData.data[idx + 3] = 255; // A
+                } 
+            
+            }
+            
+            function onloadHandler() {
+                // get canvas DOM
+                var canvas = document.getElementById('canvasS');
+                console.log(canvas);
+                var ctx = canvas.getContext('2d');
+                console.log(ctx);
+                //ctx.clearRect(0,0,256,256);
+                //imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                var imgData = ctx.createImageData(canvas.width, canvas.height);
+;                for (var y = 0; y < 256; ++y) {
+                    for (var x = 0; x < 256; ++x) {
+                     //    ctx.fillStyle = 'rgb(255,0,0)';
+                      //  ctx.fillRect(x, y, 1, 1);
+                        drawSphere(50.0, x, y, imgData);
+                    }
+                }
+                ctx.putImageData(imgData, 0,0);
+            }
+        </script>
+    </head>
+    <body style="background-color=#bfbfbf">
+        <canvas id="canvasS" width="256" height="256" style="background-color=#ffffff"></canvas>
+    </body>
+</html>
