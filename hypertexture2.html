@@ -2,150 +2,317 @@
 <html>
     <head>
         <title>Hypertexture testing</title>
-        <script src="js/simplex-noise.js"></script>
+    	<script src="js/simplex-noise.js"></script>
         <script src='js/hypertextures.js'></script>
         <script>
         
-        var color = {r: 255, g:255, b:255, a:255}; // default color!
+var imgData;
+var d = 100;
+var totalNumSteps = 200;
+var stepSize = 0.5;
+var epsilon = 1.0;		
+var c = 0.3;			
+var xu0 = 20;		
+var Ks = {x: 0.4, y: 0.4, z: 0.4};	
+var Kd = {x: 0.9, y: 0.9, z: 0.9};	
+var Ka = {x: 0.7, y: 0.7, z: 0.7};	
+var s = 16;			
+var lightDir = {x: 0.448, y: -0.4, z: -0.8};	
+var lightColor = {x: 0.7, y: 0.4, z: 0.2};	
+var lightAmbient = {x: 0.3, y: 0.3, z: 0.3};			
+window.addEventListener('load', onloadHandler, false);
+	
+
+
+			
+// Object Density function for this point x, y, z
+// Arguments
+// x, y, z This point in the "shere"
+// s  width of soft region
+// r radius of sphere
+function D(x, y, z, s, r) {
+    var r21 = (r - s/2) * (r - s/2);
+	var r20 = (r + s/2) * (r + s/2);
+	var r2x = x*x + y*y + (z - 100)*(z - 100);
+			
+	if(r2x < r21) {
+		return 1.0;
+	}
+	if(r2x >= r20) {
+		return 0.0;	
+	}
+	return ((r20 - r2x)/(r20 - r21));
+}
+			
+function f(p) {
+
+	var fx = D(p.x, p.y, p.z, 7, 65);		
+			
+	return fx;
+}
+
+// draws a sphere
+function drawSphere(r, px, py, imgData) {
+    var x = px - 256/2;
+    var y = py - 256/2;
+    var dist = Math.sqrt(x*x + y*y);
+    if (dist > r) {
+        return;
+    } 
+        console.log('success?');
+        console.log(px +", " +py);
         
-        window.addEventListener('load', onloadHandler, false);
-
-        function colorShade(px, py, pz, color) {
-              
-            // TEMP NORMAL
-            
-            py *= -1;
-            
-            var normal = { x: px, y: py, z:1};
-            console.log(normal);
-            var length = Math.sqrt(px*px + py*py + pz*pz);
-            normal.x /= length;
-            normal.y /= length;
-            normal.z /= length;
-            
-            // TEMP LIGHT
-            var light = {x: 10, y: 0, z: 1};
-            var ll = Math.sqrt(light.x*light.x + light.y*light.y + light.z+light.z);// light length
-            light.x /= ll;
-            light.y /= ll;
-            light.z /= ll;
-            
-            // 2 lights!
-            var light2 = {x: 10, y: 0.0, z: 1};
-            var ll = Math.sqrt(light2.x*light2.x + light2.y*light2.y + light2.z+light2.z);// light length
-            light2.x /= ll;
-            light2.y /= ll;
-            light2.z /= ll;
-            
-            
-            var lightColor = {r: 1.0, g:0.0, b:1.0};
-            var coeff = {r:1.0, g:1.0, b:1.0}
-                        
-            NdotL = normal.x*light.x + normal.y*light.y + normal.z*light.z;
-            NdotL2 = normal.x*light2.x + normal.y*light2.y + normal.z*light2.z;
-            console.log("n . l= " + NdotL);
-            
-            
-            // diffusess
-            color.r = coeff.r * (lightColor.r * (NdotL + NdotL2));
-            color.g = coeff.g * (lightColor.g * (NdotL + NdotL2));
-            color.b = coeff.b * (lightColor.b * (NdotL + NdotL2));
-            
-            // clamp 
-            if (color.r < 0) color.r = 0;
-            else if (color.r > 1) color.r = 1;
-            if (color.g < 0) color.g = 0;
-            else if (color.g > 1) color.g = 1;
-            if (color.b < 0) color.b = 0;
-            else if (color.b > 1) color.b = 1;
-            
-            console.log(color.r);
-            
-            // add some ambience
-            color.r += .1 * lightColor.r;
-            color.g += .1 * lightColor.g;
-            color.b += .1 * lightColor.b;
-            
-            if (color.r < 0) color.r = 0;
-            else if (color.r > 1) color.r = 1;
-            if (color.g < 0) color.g = 0;
-            else if (color.g > 1) color.g = 1;
-            if (color.b < 0) color.b = 0;
-            else if (color.b > 1) color.b = 1;
-            
-            // convert back to 255?
-            color.r = Math.floor(color.r * 255);
-            console.log(color.r);
-            color.g = Math.floor(color.g * 255);
-            color.b = Math.floor(color.b * 255);
-        }
-
-        // Object Density function for this point x, y, z
-        // Arguments
-        // x, y, z This point in the "shere"
-        // s  width of soft region
-        // r radius of sphere
-            function D(px, py, pz, s, r) {
-                // px and py should probalby be converted to polar coordinates
-                
-                // uses sphere coordinates, centered at w/2, h/2
-                
-                var ir = (r - s/2)*(r - s/2); // inner radius squared
-                var or = (r + s/2)*(r + s/2); // outer radius squared
-                // convert to polar to see if in region
-               // var x = px - 256/2, y = py - 256/2, z = pz - 256/2 
-                var rx = Math.sqrt(px*px + py*py); 
-                //if (rx < ir) return 1.0; // this shold maybe put it into a table?
-                //else if (rx > 1.0) return 0.0;
-                return BasicNoise(px, py); // TEMP
-            }
-
-            // draws a sphere
-            function drawSphere(r, px, py, imgData) {
-                var x = px - 256/2;
-                var y = py - 256/2;
-                var dist = Math.sqrt(x*x + y*y);
-                if (dist > r) {
-                    return;
-                } else {
-                    console.log('success?');
-                    console.log(px +", " +py);
-                    
 //                    ctx.fillStyle('rgb(255,0,0)');
 //                    ctx.fillRect(x, y, 1, 1);
-                    var color = {r: 255, g: 0, b: 0};
-                    colorShade(x, y, 1, color);
-                    var idx = (px + py*256) * 4
-                  //  console.log("orig:" + imgData.data[idx+0]);
-                    imgData.data[idx + 0] = color.r; // R
-                    console.log("in sphere! r " + imgData.data[idx+0]);
-                    imgData.data[idx + 1] = color.g; // G
-                    console.log("in sphere! g " + imgData.data[idx+1]);
-                    imgData.data[idx + 2] = color.b; // B
-                    console.log("in sphere! b " + imgData.data[idx+2]);
-                    imgData.data[idx + 3] = 255; // A
-                } 
-            
-            }
-            
-            function onloadHandler() {
-                // get canvas DOM
-                var canvas = document.getElementById('canvasS');
-             //   console.log(canvas);
-                var ctx = canvas.getContext('2d');
-               // console.log(ctx);
-                //ctx.clearRect(0,0,256,256);
-                //imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                var imgData = ctx.createImageData(canvas.width, canvas.height);
-                for (var y = 0; y < 256; ++y) {
-                    for (var x = 0; x < 256; ++x) {
-                     //    ctx.fillStyle = 'rgb(255,0,0)';
-                      //  ctx.fillRect(x, y, 1, 1);
-                        drawSphere(75.0, x, y, imgData);
-                    }
-                }
-                ctx.putImageData(imgData, 0,0);
-            }
+        var idx = (px + py*256) * 4;
+        console.log("orig:" + imgData.data[idx]);
+        imgData.data[idx] = 255; // R
+        console.log("in sphere!" + imgData.data[idx]);
+        imgData.data[idx + 1] = 0; // G
+        imgData.data[idx + 2] = 0; // B
+        imgData.data[idx + 3] = 255; // A
+
+}
+
+function GetRay(x, y) {
+	var ray = {x: 0.0, y: 0.0, z: 0.0};
+	
+	var length = Math.sqrt((x - 128)*(x - 128) + (y - 128)*(y - 128) + d*d);
+	ray.x = (x - 128)/length;
+	ray.y = (y - 128)/length;
+	ray.z = d/length;
+
+	return ray;
+}
+
+function GetNormal(x, xu, xv, xw, ray, up, side, epsilon) {
+	var grad = {x: 0.0, y: 0.0, z: 0.0};
+	var fx = f(x);
+	var fxu = f(xu);
+	var fxv = f(xv);
+	var fxw = f(xw);
+			
+	grad.x = fx - fxu;
+	grad.y = fxv - fx;
+	grad.z = fxw - fx;
+	//console.log(grad);
+
+	var normal = {x: 0.0, y: 0.0, z: 0.0};
+	//console.log(normal);
+	normal.x = ray.x*epsilon*grad.x + up.x*epsilon*grad.y + side.x*epsilon*grad.z;
+	normal.y = ray.y*epsilon*grad.x + up.y*epsilon*grad.y + side.y*epsilon*grad.z;
+	normal.z = ray.z*epsilon*grad.x + up.z*epsilon*grad.y + side.z*epsilon*grad.z;
+	//console.log(normal);
+
+	var normalLength = Math.sqrt(normal.x*normal.x + normal.y*normal.y + normal.z*normal.z);
+			
+	if(normalLength == 0.0) {		
+		normal.x = 0.0;
+		normal.y = 0.0;
+		normal.z = -1.0;
+	}
+	else {
+		normal.x = -normal.x/normalLength;
+		normal.y = -normal.y/normalLength;
+		normal.z = -normal.z/normalLength;
+	}
+
+	return normal;
+}
+
+function Shade(normal, E) {
+
+	var color = {x: 0.0, y: 0.0, z: 0.0};
+	color.x = 0.0;
+	color.y = 0.0;
+	color.z = 0.0;
+			
+	var NL = normal.x*lightDir.x + normal.y*lightDir.y + normal.z*lightDir.z;
+	var NE = normal.x*E.x + normal.y*E.y + normal.z*E.z;
+
+	if(NL >= 0.0 && NE >= 0.0) {
+
+			
+		var R = {x: 0.0, y: 0.0, z: 0.0};
+		R.x = 2*NL*normal.x - lightDir.x;
+		R.y = 2*NL*normal.y - lightDir.y;
+		R.z = 2*NL*normal.z - lightDir.z;
+		var rLength = Math.sqrt(R.x*R.x + R.y*R.y + R.z*R.z);
+		R.x = R.x/rLength;
+		R.y = R.y/rLength;
+		R.z = R.z/rLength;
+
+		var RE = R.x*lightDir.x + R.y*lightDir.y + R.z*lightDir.z;
+		if(RE < 0.0) {
+			RE = 0.0;
+		}
+
+		RE = Math.pow(RE, s);
+	
+		color.x += lightColor.x*RE*Ks.x;
+		color.y += lightColor.y*RE*Ks.y;
+		color.z += lightColor.z*RE*Ks.z;
+
+		color.x += lightColor.x*NL*Kd.x;
+		color.y += lightColor.y*NL*Kd.y;
+		color.z += lightColor.z*NL*Kd.z;
+
+		//console.log(color);
+		//console.log(normal);			
+	}
+
+	color.x += lightAmbient.x*Ka.x;
+	color.y += lightAmbient.y*Ka.y;
+	color.z += lightAmbient.z&Ka.z;
+			
+	//console.log(color);
+
+	return color;
+}
+
+function AccumulateColor(ray, currentcolor, k, stepSize) {
+	
+	var newColor = {x: 0.0, y: 0.0, z: 0.0, a: 0.0};
+
+	var distAlongRay = xu0 + k*stepSize;
+
+
+	var up = {x: 0.0, y: 0.0, z: 0.0};
+	up.x = -ray.y*ray.x;
+	up.y = 1 - ray.y*ray.y;
+	up.z = -ray.y*ray.z;
+
+	var upLength = Math.sqrt(up.x*up.x + up.y*up.y + up.z*up.z);
+	up.x = up.x/upLength;
+	up.y = up.y/upLength;
+	up.z = up.z/upLength;
+
+	var side = {x: 0.0, y: 0.0, z: 0.0};
+	side.x = up.y*ray.z - up.z*ray.y;
+	side.y = up.z*ray.x - up.x*ray.z;
+	side.z = up.x*ray.y - up.y*ray.x;
+
+	
+
+
+	var x = {x: 0.0, y: 0.0, z: 0.0};
+	x.x = ray.x*distAlongRay;
+	x.y = ray.y*distAlongRay;
+	x.z = ray.z*distAlongRay;
+
+	var xu = {x: 0.0, y: 0.0, z: 0.0};
+	xu.x = ray.x*(distAlongRay - epsilon);
+	xu.y = ray.y*(distAlongRay - epsilon);
+	xu.z = ray.z*(distAlongRay - epsilon);
+
+	var xv = {x: 0.0, y: 0.0, z: 0.0};
+	xv.x = x.x + up.x*epsilon;
+	xv.y = x.y + up.y*epsilon;
+	xv.z = x.z + up.z*epsilon;
+
+	var xw = {x: 0.0, y: 0.0, z: 0.0};
+	xw.x = x.x + side.x*epsilon;
+	xw.y = x.y + side.y*epsilon;
+	xw.z = x.z + side.z*epsilon;
+
+	var normal = new GetNormal(x, xu, xv, xw, ray, up, side, epsilon);
+
+	
+	
+	var alphak = 1.0 - Math.pow((1.0 - f(x)), c*stepSize);
+	var t = alphak*(1.0 - currentcolor.a);
+
+	var E = {x: 0.0, y: 0.0, z: 0.0};
+	E.x = -ray.x;
+	E.y = -ray.y;
+	E.z = -ray.z;
+
+	
+	var colork = new Shade(normal, E);
+
+	//console.log(currentcolor.a);			
+	//console.log(t);			
+	//console.log (colork);		
+	newColor.x = currentcolor.x + t*colork.x;
+	newColor.y = currentcolor.y + t*colork.y;
+	newColor.z = currentcolor.z + t*colork.z;
+
+	//alpha
+	newColor.a = currentcolor.a + t;
+
+	return newColor;
+
+}
+
+function MarchRay(x, y) {
+	var ray = new GetRay(x, y);
+	var currentColor =  {x: 0.0, y: 0.0, z: 0.0, a: 0.0};
+        var k = 0;
+	for (k = 0; k < totalNumSteps; k++) {
+		var newColor = new AccumulateColor(ray, currentColor, k, stepSize);
+		currentColor = newColor;
+	}
+
+	if(currentColor.x < 0.0) {
+		currentColor.x = 0.0;
+	}
+	else if (currentColor.x > 1.0) {
+		currentColor.x = 1.0;
+	}
+	if(currentColor.y < 0.0) {
+		currentColor.y = 0.0;
+	}
+	else if (currentColor.y > 1.0) {
+		currentColor.y = 1.0;
+	}
+	if(currentColor.z < 0.0) {
+		currentColor.z = 0.0;
+	}
+	else if (currentColor.z > 1.0) {
+		currentColor.z = 1.0;
+	}
+	if(currentColor.a < 0.0) {
+		currentColor.a = 0.0;
+	}
+	else if (currentColor.a > 1.0) {
+		currentColor.a = 1.0;
+	}
+
+	return currentColor;
+
+}
+
+function onloadHandler() {
+    // get canvas DOM
+			
+    var canvas = document.getElementById('canvasS');
+    console.log(canvas);
+    var ctx = canvas.getContext('2d');
+    console.log(ctx);
+    //ctx.clearRect(0,0,256,256);
+    //imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var imgData = ctx.createImageData(canvas.width, canvas.height);
+    var y = 128;
+    for (y = 0; y < 256; ++y) {
+        var x = 128;
+        for (x = 0; x < 256; ++x) {
+         //    ctx.fillStyle = 'rgb(255,0,0)';
+          //  ctx.fillRect(x, y, 1, 1);
+			var color =  new MarchRay(x, y);
+			//console.log(x);
+			//console.log(y);
+			//console.log(color);
+			var idx = (x + y*256) * 4;
+			imgData.data[idx] = color.x*255;
+			imgData.data[idx + 1] = color.y*255;
+			imgData.data[idx + 2] = color.z*255;
+			imgData.data[idx + 3] = 255;
+            //drawSphere(50.0, x, y, imgData);
+        }
+    }
+    ctx.putImageData(imgData, 0,0);
+}
+			
         </script>
     </head>
     <body style="background-color=#bfbfbf">
