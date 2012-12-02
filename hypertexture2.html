@@ -9,6 +9,7 @@
 var imgData;
 var d = 100;
 var totalNumSteps = 200;
+//var totalNumSteps = 500;
 var stepSize = 0.5;
 var epsilon = 1.0;		
 var c = 0.3;			
@@ -58,9 +59,11 @@ function D(x, y, z, s, r) {
 		return 0.0;	
 	}
 
-	//return ((r20 - r2x)/(r20 - r21));
+	return ((r20 - r2x)/(r20 - r21));
 	//return Math.random();
-	return BasicNoise(x, y, x);
+	//return BasicNoise(x, y, z);
+	//return simplex.noise3d(x, y, z);
+	//return simplex.noise2d(x, y);
 }
 			
 function f(p) {
