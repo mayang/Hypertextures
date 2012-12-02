@@ -2,23 +2,75 @@
 <html>
     <head>
         <title>Hypertexture testing</title>
+        <script src="js/simplex-noise.js"></script>
+        <script src='js/hypertextures.js'></script>
         <script>
         
-            var imgData;
+        var color = {r: 255, g:255, b:255, a:255}; // default color!
+        
+        window.addEventListener('load', onloadHandler, false);
+
+        function colorShade(px, py, pz, color) {
+//            var noise = D(px, py, pz, 10, 20);
+//            console.log("noise" + noise);
+//            if (noise < 0) noise *= -1;
+//            console.log("orig" + color.r);
+//            color.r *= noise;
+//            console.log("noised" + color.r);
+//            color.g *= noise;
+//            color.b *= noise;
             
-            window.addEventListener('load', onloadHandler, false);
+            
+            // TEMP NORMAL
+            
+            py *= -1;
+            
+            var normal = { x: px, y: py, z:1};
+            var length = Math.sqrt(px*px + py*py + pz*pz);
+            normal.x /= length;
+            normal.y /= length;
+            normal.z /= length;
+            
+            // TEMP LIGHT
+            var light = {x: 1, y: 1, z: 1};
+            var ll = Math.sqrt(light.x*light.x + light.y*light.y + light.z+light.z);// light length
+            light.x /= ll;
+            light.y /= ll;
+            light.z /= ll;
+            var lightColor = {r: 255, g:0, b:255};
+            var coeff = {r:107, g:107, b:107}
+                        
+            NdotL = normal.x*light.x + normal.y*light.y + normal.z*light.z;
+            console.log("n . l " + NdotL);
+            
+            color.r = lightColor.r * NdotL;
+            color.g = lightColor.g * NdotL;
+            color.b = lightColor.b * NdotL;
+        }
+
 
         // Object Density function for this point x, y, z
         // Arguments
         // x, y, z This point in the "shere"
         // s  width of soft region
         // r radius of sphere
-        function D(x, y, z, s, r) {
-            
-        }
+            function D(px, py, pz, s, r) {
+                // px and py should probalby be converted to polar coordinates
+                
+                // uses sphere coordinates, centered at w/2, h/2
+                
+                var ir = (r - s/2)*(r - s/2); // inner radius squared
+                var or = (r + s/2)*(r + s/2); // outer radius squared
+                // convert to polar to see if in region
+               // var x = px - 256/2, y = py - 256/2, z = pz - 256/2 
+                var rx = Math.sqrt(px*px + py*py); 
+                //if (rx < ir) return 1.0; // this shold maybe put it into a table?
+                //else if (rx > 1.0) return 0.0;
+                return BasicNoise(px, py); // TEMP
+            }
 
-        // draws a sphere
-        function drawSphere(r, px, py, imgData) {
+            // draws a sphere
+            function drawSphere(r, px, py, imgData) {
                 var x = px - 256/2;
                 var y = py - 256/2;
                 var dist = Math.sqrt(x*x + y*y);
@@ -30,12 +82,14 @@
                     
 //                    ctx.fillStyle('rgb(255,0,0)');
 //                    ctx.fillRect(x, y, 1, 1);
+                    var color = {r: 255, g: 0, b: 0};
+                    colorShade(x, y, 1, color);
                     var idx = (px + py*256) * 4
-                    console.log("orig:" + imgData.data[idx+0]);
-                    imgData.data[idx + 0] = 255; // R
+                  //  console.log("orig:" + imgData.data[idx+0]);
+                    imgData.data[idx + 0] = color.r; // R
                     console.log("in sphere!" + imgData.data[idx+0]);
-                    imgData.data[idx + 1] = 0; // G
-                    imgData.data[idx + 2] = 0; // B
+                    imgData.data[idx + 1] = color.g; // G
+                    imgData.data[idx + 2] = color.b; // B
                     imgData.data[idx + 3] = 255; // A
                 } 
             
@@ -44,13 +98,13 @@
             function onloadHandler() {
                 // get canvas DOM
                 var canvas = document.getElementById('canvasS');
-                console.log(canvas);
+             //   console.log(canvas);
                 var ctx = canvas.getContext('2d');
-                console.log(ctx);
+               // console.log(ctx);
                 //ctx.clearRect(0,0,256,256);
                 //imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 var imgData = ctx.createImageData(canvas.width, canvas.height);
-;                for (var y = 0; y < 256; ++y) {
+                for (var y = 0; y < 256; ++y) {
                     for (var x = 0; x < 256; ++x) {
                      //    ctx.fillStyle = 'rgb(255,0,0)';
                       //  ctx.fillRect(x, y, 1, 1);
