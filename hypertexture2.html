@@ -22,7 +22,9 @@ var Ka = {x: 0.7, y: 0.7, z: 0.7};
 var s = 16;			
 var lightDir = {x: 0.448, y: -0.4, z: -0.8};	
 var lightColor = {x: 0.7, y: 0.4, z: 0.2};	
-var lightAmbient = {x: 0.3, y: 0.3, z: 0.3};			
+var lightAmbient = {x: 0.3, y: 0.3, z: 0.3};	
+var bias = .1;
+//var bias = 1;		
 
 var simplex = new SimplexNoise();
 window.addEventListener('load', onloadHandler, false);
@@ -48,6 +50,12 @@ function BasicNoise(x, y, z) {
 	//var density = xbump*xbump + ybump*ybump + zbump*zbump;
 	//console.log(density);
 	//return  density; 
+}
+
+function Bias(x, y, z) {
+	var nfx = BasicNoise(x, y, z);
+	return Math.pow(nfx, (Math.log(bias) / Math.log(.5)));
+	
 }
 
 function Turbulance(x, y, z) {
@@ -78,7 +86,9 @@ function D(x, y, z, s, r) {
 
 	//return ((r20 - r2x)/(r20 - r21));
 	//return Math.random();
-	return InvertNoise(x, y, z);
+	//return BasicNoise(x, y, z);
+	return Bias(x, y, z);
+	//return InvertNoise(x, y, z);
 	//return simplex.noise3D(x * .1, y * .1, z * .1);
 	//return simplex.noise2D(x, y);
 }
