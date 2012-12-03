@@ -71,9 +71,21 @@ function Turbulance(x, y, z) {
 	//double t = -
 }
 
+function Intersection(ad, bd) {
+	return ad * bd;
+}
+
 function Complement(density) {
 	//var nfx = BasicNoise(x, y, z);
 	return 1 - density;
+}
+
+function Difference(ad, bd) {
+	return ad - Intersection(ad, bd);
+}
+
+function Union(ad, bd) {
+	return ad + bd - Intersection(ad, bd);
 }
 			
 // Object Density function for this point x, y, z
