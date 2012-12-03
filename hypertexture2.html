@@ -29,21 +29,25 @@ window.addEventListener('load', onloadHandler, false);
 	
 
 function BasicNoise(x, y, z) {
-	var freq = 2; // TEMP
+	var freq = .1; // TEMP
 	//var simplex = new SimplexNoise()
 	var nfx = simplex.noise3D(x * freq, y * freq, z * freq);
+	// -1 to 1 to 0 to 1 map
+	// (x - lo) / (hi-lo)
+	nfx = (nfx - -1) / (1 - -1);
+	return nfx;
 	//var nfx = simplex.noise2D(x*f, y*f);
 	//console.log("nfx" + nfx);
 	// return nfx;
-	var amp = 1 / freq;
-	var bump = (1 + amp*nfx);
+	//var amp = 1 / freq;
+	//var bump = (1 + amp*nfx);
 	//return bump;
-	var xbump = x * bump;
-	var ybump = y * bump;
-	var zbump = z * bump;
-	var density = xbump*xbump + ybump*ybump + zbump*zbump;
-	console.log(density);
-	return  density; 
+	//var xbump = x * bump;
+	//var ybump = y * bump;
+	//var zbump = z * bump;
+	//var density = xbump*xbump + ybump*ybump + zbump*zbump;
+	//console.log(density);
+	//return  density; 
 }
 
 			
@@ -66,7 +70,8 @@ function D(x, y, z, s, r) {
 
 	//return ((r20 - r2x)/(r20 - r21));
 	//return Math.random();
-	return simplex.noise3D(x * .1, y * .1, z * .1);
+	return BasicNoise(x, y, z);
+	//return simplex.noise3D(x * .1, y * .1, z * .1);
 	//return simplex.noise2D(x, y);
 }
 			
