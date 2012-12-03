@@ -8,8 +8,9 @@
         
 var imgData;
 var d = 100;
-//var totalNumSteps = 200;
-var totalNumSteps = 50;
+//var d = 128;
+var totalNumSteps = 200;
+//var totalNumSteps = 50;
 //var stepSize = 0.5;
 var stepSize = 1.0;
 var epsilon = 1.0;		
@@ -28,7 +29,7 @@ window.addEventListener('load', onloadHandler, false);
 	
 
 function BasicNoise(x, y, z) {
-	var freq = 1; // TEMP
+	var freq = 2; // TEMP
 	//var simplex = new SimplexNoise()
 	var nfx = simplex.noise3D(x * freq, y * freq, z * freq);
 	//var nfx = simplex.noise2D(x*f, y*f);
@@ -36,10 +37,13 @@ function BasicNoise(x, y, z) {
 	// return nfx;
 	var amp = 1 / freq;
 	var bump = (1 + amp*nfx);
+	//return bump;
 	var xbump = x * bump;
 	var ybump = y * bump;
 	var zbump = z * bump;
-	return  xbump*xbump + ybump*ybump + zbump*zbump; 
+	var density = xbump*xbump + ybump*ybump + zbump*zbump;
+	console.log(density);
+	return  density; 
 }
 
 			
@@ -62,14 +66,13 @@ function D(x, y, z, s, r) {
 
 	//return ((r20 - r2x)/(r20 - r21));
 	//return Math.random();
-	//return BasicNoise(x, y, z);
-	return simplex.noise3D(x, y, z);
+	return simplex.noise3D(x * .1, y * .1, z * .1);
 	//return simplex.noise2D(x, y);
 }
 			
 function f(p) {
 
-	var fx = D(p.x, p.y, p.z, 7, 65);		
+	var fx = D(p.x, p.y, p.z, 10, 65);		
 			
 	return fx;
 }
@@ -118,7 +121,7 @@ function GetNormal(x, xu, xv, xw, ray, up, side, epsilon) {
 	grad.x = fx - fxu;
 	grad.y = fxv - fx;
 	grad.z = fxw - fx;
-	//console.log(grad);
+	//console.log(grad);n
 
 	var normal = {x: 0.0, y: 0.0, z: 0.0};
 	//console.log(normal);
@@ -186,7 +189,7 @@ function Shade(normal, E) {
 
 	color.x += lightAmbient.x*Ka.x;
 	color.y += lightAmbient.y*Ka.y;
-	color.z += lightAmbient.z&Ka.z;
+	color.z += lightAmbient.z*Ka.z; //?& instead of *?
 			
 	//console.log(color);
 
@@ -194,6 +197,11 @@ function Shade(normal, E) {
 }
 
 function AccumulateColor(ray, currentcolor, k, stepSize) {
+	
+	// this should accumulate
+	if (currentcolor.a == 1.0) {
+		return currentcolor;
+	}
 	
 	var newColor = {x: 0.0, y: 0.0, z: 0.0, a: 0.0};
 
@@ -215,8 +223,11 @@ function AccumulateColor(ray, currentcolor, k, stepSize) {
 	side.y = up.z*ray.x - up.x*ray.z;
 	side.z = up.x*ray.y - up.y*ray.x;
 
-	
-
+	// side's not getting normalizeD?
+	var sideLength = Math.sqrt(side.x*side.x + side.y*side.y + side.z*side.z);
+	side.x /= sideLength;
+	side.y /= sideLength;
+	side.z /= sideLength;
 
 	var x = {x: 0.0, y: 0.0, z: 0.0};
 	x.x = ray.x*distAlongRay;
@@ -309,9 +320,9 @@ function onloadHandler() {
     // get canvas DOM
 			
     var canvas = document.getElementById('canvasS');
-    console.log(canvas);
+    //console.log(canvas);
     var ctx = canvas.getContext('2d');
-    console.log(ctx);
+    //console.log(ctx);
     //ctx.clearRect(0,0,256,256);
     //imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     var imgData = ctx.createImageData(canvas.width, canvas.height);
@@ -329,7 +340,7 @@ function onloadHandler() {
 			imgData.data[idx] = color.x*255;
 			imgData.data[idx + 1] = color.y*255;
 			imgData.data[idx + 2] = color.z*255;
-			imgData.data[idx + 3] = 255;
+			imgData.data[idx + 3] = color.a*255;
             //drawSphere(50.0, x, y, imgData);
         }
     }
