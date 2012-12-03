@@ -23,14 +23,14 @@ var s = 16;
 var lightDir = {x: 0.448, y: -0.4, z: -0.8};	
 var lightColor = {x: 0.7, y: 0.4, z: 0.2};	
 var lightAmbient = {x: 0.3, y: 0.3, z: 0.3};	
-var bias = .1;
-//var bias = 1;		
-
+var bias = .1;	// for bias [0..1]
+var gain = .5; // for gain [0..1]
+var freq = .1; // for noise! [0..1]
 var simplex = new SimplexNoise();
 window.addEventListener('load', onloadHandler, false);
 
 function BasicNoise(x, y, z) {
-	var freq = .1; // TEMP
+	//var freq = .1; // TEMP
 	//var simplex = new SimplexNoise()
 	var nfx = simplex.noise3D(x * freq, y * freq, z * freq);
 	// -1 to 1 to 0 to 1 map
@@ -38,6 +38,7 @@ function BasicNoise(x, y, z) {
 	nfx = (nfx - -1) / (1 - -1);
 	
 	return nfx;
+	
 	//var nfx = simplex.noise2D(x*f, y*f);
 	//console.log("nfx" + nfx);
 	// return nfx;
@@ -52,19 +53,27 @@ function BasicNoise(x, y, z) {
 	//return  density; 
 }
 
-function Bias(x, y, z) {
-	var nfx = BasicNoise(x, y, z);
-	return Math.pow(nfx, (Math.log(bias) / Math.log(.5)));
-	
+function Bias(b, density) {
+	//var nfx = BasicNoise(x, y, z);
+	return Math.pow(density, (Math.log(bias) / Math.log(.5)));
+}
+
+function Gain(g, density) {
+	//var nfx = BasicNoise(x, y, z); // could use other stuff too i suppose but right now it's like this
+	if (density < 0.5) {
+		return Bias(1-g, 2*density) / 2;
+	} else {
+		return 1 - (Bias(1-g, 2 - 2*density) / 2);
+	}
 }
 
 function Turbulance(x, y, z) {
 	//double t = -
 }
 
-function InvertNoise(x, y, z) {
-	var nfx = BasicNoise(x, y, z);
-	return 1 - nfx;
+function Complement(density) {
+	//var nfx = BasicNoise(x, y, z);
+	return 1 - density;
 }
 			
 // Object Density function for this point x, y, z
@@ -84,11 +93,13 @@ function D(x, y, z, s, r) {
 		return 0.0;	
 	}
 
+	var density = BasicNoise(x, y, z);
 	//return ((r20 - r2x)/(r20 - r21));
 	//return Math.random();
 	//return BasicNoise(x, y, z);
-	return Bias(x, y, z);
-	//return InvertNoise(x, y, z);
+	//return Bias(bias, density);
+	return Gain(gain, density);
+	//return Complement(density);
 	//return simplex.noise3D(x * .1, y * .1, z * .1);
 	//return simplex.noise2D(x, y);
 }
