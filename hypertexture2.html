@@ -26,7 +26,6 @@ var lightAmbient = {x: 0.3, y: 0.3, z: 0.3};
 
 var simplex = new SimplexNoise();
 window.addEventListener('load', onloadHandler, false);
-	
 
 function BasicNoise(x, y, z) {
 	var freq = .1; // TEMP
@@ -35,6 +34,7 @@ function BasicNoise(x, y, z) {
 	// -1 to 1 to 0 to 1 map
 	// (x - lo) / (hi-lo)
 	nfx = (nfx - -1) / (1 - -1);
+	
 	return nfx;
 	//var nfx = simplex.noise2D(x*f, y*f);
 	//console.log("nfx" + nfx);
@@ -50,6 +50,14 @@ function BasicNoise(x, y, z) {
 	//return  density; 
 }
 
+function Turbulance(x, y, z) {
+	//double t = -
+}
+
+function InvertNoise(x, y, z) {
+	var nfx = BasicNoise(x, y, z);
+	return 1 - nfx;
+}
 			
 // Object Density function for this point x, y, z
 // Arguments
@@ -70,7 +78,7 @@ function D(x, y, z, s, r) {
 
 	//return ((r20 - r2x)/(r20 - r21));
 	//return Math.random();
-	return BasicNoise(x, y, z);
+	return InvertNoise(x, y, z);
 	//return simplex.noise3D(x * .1, y * .1, z * .1);
 	//return simplex.noise2D(x, y);
 }
