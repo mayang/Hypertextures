@@ -24,7 +24,7 @@ var lightDir = {x: 0.448, y: -0.4, z: -0.8};
 var lightColor = {x: 0.7, y: 0.4, z: 0.2};	
 var lightAmbient = {x: 0.3, y: 0.3, z: 0.3};	
 var bias = .1;	// for bias [0..1]
-var gain = .5; // for gain [0..1]
+var gain = .9; // for gain [0..1]
 var freq = .1; // for noise! [0..1]
 var simplex = new SimplexNoise();
 window.addEventListener('load', onloadHandler, false);
@@ -55,7 +55,7 @@ function BasicNoise(x, y, z) {
 
 function Bias(b, density) {
 	//var nfx = BasicNoise(x, y, z);
-	return Math.pow(density, (Math.log(bias) / Math.log(.5)));
+	return Math.pow(density, (Math.log(b) / Math.log(.5)));
 }
 
 function Gain(g, density) {
@@ -106,11 +106,12 @@ function D(x, y, z, s, r) {
 	}
 
 	var density = BasicNoise(x, y, z);
+	return density;
 	//return ((r20 - r2x)/(r20 - r21));
 	//return Math.random();
 	//return BasicNoise(x, y, z);
 	//return Bias(bias, density);
-	return Gain(gain, density);
+	//return Gain(gain, density);
 	//return Complement(density);
 	//return simplex.noise3D(x * .1, y * .1, z * .1);
 	//return simplex.noise2D(x, y);
@@ -118,7 +119,12 @@ function D(x, y, z, s, r) {
 			
 function f(p) {
 
-	var fx = D(p.x, p.y, p.z, 10, 65);		
+	var fx = D(p.x, p.y, p.z, 10, 65);	
+	
+	return Gain(gain, Bias(bias, fx));
+	//return Bias(bias, fx);
+	//return Gain(gain, fx);
+	//return Complement(fx); // why this no work here? but it does in the previous one?
 			
 	return fx;
 }
