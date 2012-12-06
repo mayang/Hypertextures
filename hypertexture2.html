@@ -24,8 +24,9 @@ var lightDir = {x: 0.448, y: -0.4, z: -0.8};
 var lightColor = {x: 0.7, y: 0.4, z: 0.2};	
 var lightAmbient = {x: 0.3, y: 0.3, z: 0.3};	
 var bias = .1;	// for bias [0..1]
-var gain = .9; // for gain [0..1]
+var gain = .1; // for gain [0..1]
 var freq = .1; // for noise! [0..1]
+var k = 4; // levels for turbulance 
 var simplex = new SimplexNoise();
 window.addEventListener('load', onloadHandler, false);
 
@@ -67,8 +68,15 @@ function Gain(g, density) {
 	}
 }
 
-function Turbulance(x, y, z) {
+function Turbulence(x, y, z) {
 	//double t = -
+	var t = 0;
+	
+	for (var i = 0; i < k; ++i) {
+		var pow  = Math.pow(2,i);
+		t += (1/pow) * Math.abs(simplex.noise3D(pow*x, pow*y, pow*z));
+	}
+	
 }
 
 function Intersection(ad, bd) {
@@ -100,13 +108,16 @@ function D(x, y, z, s, r) {
 			
 	if(r2x < r21) {
 		return 1.0;
+		
 	}
 	if(r2x >= r20) {
 		return 0.0;	
 	}
 
 	var density = BasicNoise(x, y, z);
+	//console.log("density" + density); 
 	return density;
+	//return density;
 	//return ((r20 - r2x)/(r20 - r21));
 	//return Math.random();
 	//return BasicNoise(x, y, z);
@@ -115,15 +126,20 @@ function D(x, y, z, s, r) {
 	//return Complement(density);
 	//return simplex.noise3D(x * .1, y * .1, z * .1);
 	//return simplex.noise2D(x, y);
+	//return Turbulence(x, y, z);
 }
 			
 function f(p) {
 
 	var fx = D(p.x, p.y, p.z, 10, 65);	
 	
-	return Gain(gain, Bias(bias, fx));
+	//return Gain(gain, Bias(bias, fx));
 	//return Bias(bias, fx);
 	//return Gain(gain, fx);
+	//console.log("D=" + fx);
+	//fx = Bias(bias,fx);
+	fx = Union(Bias(bias,fx), Gain(gain, fx));
+	//console.log("DMF=" + fx);
 	//return Complement(fx); // why this no work here? but it does in the previous one?
 			
 	return fx;
@@ -149,7 +165,6 @@ function drawSphere(r, px, py, imgData) {
         imgData.data[idx + 1] = 0; // G
         imgData.data[idx + 2] = 0; // B
         imgData.data[idx + 3] = 255; // A
-
 }
 
 function GetRay(x, y) {
