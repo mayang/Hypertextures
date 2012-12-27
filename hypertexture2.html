@@ -30,13 +30,40 @@ var k = 4; // levels for turbulance
 var simplex = new SimplexNoise();
 window.addEventListener('load', onloadHandler, false);
 
+// Temporary D
 function BasicNoise(x, y, z) {
+
+
 	//var freq = .1; // TEMP
 	//var simplex = new SimplexNoise()
 	var nfx = simplex.noise3D(x * freq, y * freq, z * freq);
 	// -1 to 1 to 0 to 1 map
 	// (x - lo) / (hi-lo)
 	nfx = (nfx - -1) / (1 - -1);
+	
+	return nfx;
+	
+	//var nfx = simplex.noise2D(x*f, y*f);
+	//console.log("nfx" + nfx);
+	// return nfx;
+	//var amp = 1 / freq;
+	//var bump = (1 + amp*nfx);
+	//return bump;
+	//var xbump = x * bump;
+	//var ybump = y * bump;
+	//var zbump = z * bump;
+	//var density = xbump*xbump + ybump*ybump + zbump*zbump;
+	//console.log(density);
+	//return  density; 
+}
+
+function Noise(x, y, z) {
+	//var freq = .1; // TEMP
+	//var simplex = new SimplexNoise()
+	var nfx = simplex.noise3D(x , y , z );
+	// -1 to 1 to 0 to 1 map
+	// (x - lo) / (hi-lo)
+	//nfx = (nfx - -1) / (1 - -1);
 	
 	return nfx;
 	
@@ -115,6 +142,7 @@ function D(x, y, z, s, r) {
 	}
 
 	var density = BasicNoise(x, y, z);
+	//var density = BasicNoise(0, y, 0);
 	//console.log("density" + density); 
 	return density;
 	//return density;
@@ -131,14 +159,16 @@ function D(x, y, z, s, r) {
 			
 function f(p) {
 
-	var fx = D(p.x, p.y, p.z, 10, 65);	
+	//var fx = D(p.x, p.y, p.z, 10, 65);	
+	var s = BasicNoise(p.x, p.y, p.z);
+	var fx = Gain(0.9,  Bias(0.3, s)) * D(p.x, p.y, p.z, 10, 65);
 	
 	//return Gain(gain, Bias(bias, fx));
 	//return Bias(bias, fx);
 	//return Gain(gain, fx);
 	//console.log("D=" + fx);
 	//fx = Bias(bias,fx);
-	fx = Union(Bias(bias,fx), Gain(gain, fx));
+	//fx = Union(Bias(bias,fx), Gain(gain, fx));
 	//console.log("DMF=" + fx);
 	//return Complement(fx); // why this no work here? but it does in the previous one?
 			
